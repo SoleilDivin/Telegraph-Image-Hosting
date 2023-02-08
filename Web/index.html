@@ -90,7 +90,7 @@
         <br>
         <form role="form" action="##" onsubmit="return false" method="post" enctype="multipart/form-data" id="uploadForm">
         <div class="upload-file">
-        <input type="file" class="input-file" name="file" accept="image/png, image/jpeg, image/jpg, image/gif">
+        <input type="file" class="input-file" name="file[]" accept="image/png, image/jpeg, image/jpg, image/gif" multiple>
         <span class="tip">Choose Image</span>
         </div>
         <br><div class="Result"></div>
@@ -121,6 +121,11 @@
          alert("Copy Successfully！");
         }
         function submitdata() {
+            const formData = new FormData();
+            const files = $(".input-file").prop('files');
+            for (const file of files) {
+                formData.append("file[]",file);
+            }
             $(".container .Result").css('display', 'block');
 			$(".container .Result").html(
 						    '<div class="alert alert-warning"><strong>Uploading</strong></div>');
@@ -129,17 +134,41 @@
                 type: "POST",
                 dataType: "json",
                 url: "api.php" ,
-                data: new FormData($('#uploadForm')[0]),
+                data: formData,
                 cache: false,
                 processData: false,
                 contentType: false,
                 success: function (result) {
                     console.log(result);
                     if(result.code == 200){
+
                         $(".container .Result").css('display', 'block');
-					    $(".container .Result").html(
-						'<div class="alert alert-info"><strong>Upload Successfully！</strong><br><br>The external link of the image is: <br><br><input type="text" value="'+ result.src +'" id="imgurl" size="53"><br><br><a href="'+ result.src + '" target="_Blank"><button type="button" class="btn btn-primary">Open in New Tab</button></a> &nbsp;<button onclick="CopyUrl()" class="btn btn-primary">Copy Url</button><br><br><img src = '+ result.src + '/></div>');
-					    $(".container .ewm").css('display', 'block');
+                        $(".container .Result").append(
+                            `<div class="alert alert-info" id="result-container">
+                                <strong>Upload Successfully！</strong>
+                                <br>
+                                <br>
+                                The external links of your images are:
+                                <br>
+                                <br>
+                            </div>`
+                        );
+                        for(const link of result.src) {
+                            $("#result-container").append(
+                                '<div>' +
+                                '<input type="text" value="' + link + '" id="imgurl" size="53">' +
+                                '<br>' +
+                                '<br>' +
+                                '<a href="' + link + '" target="_Blank">' +
+                                '<button type="button" class="btn btn-primary">Open in New Tab</button>' +
+                                '</a> &nbsp;<button onclick="CopyUrl()" class="btn btn-primary">Copy Url</button>' +
+                                '<br>' +
+                                '<br>' +
+                                '<img src = ' + link + '/>' +
+                                '</div>');
+                        }
+                        $(".container .ewm").css('display', 'block');
+                        $(".container .Result").append('</div>');
                     }else{
 						$(".container .Result").css('display', 'block');
 					$(".container .Result").html(
